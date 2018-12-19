@@ -1,0 +1,74 @@
+<html>
+  <head></head>
+  <body>
+    <script>
+      
+      function invokeAsync(f, args){
+        return new Promise(
+          function(resolve, reject){
+            // if i were to do this again, i would make the worker
+            // post message and then depending on the data resolve or reject
+
+            let i = f.indexOf(" ") + 1;
+            let j = f.indexOf("(", i);
+            var name =  f.substring(i, j);
+
+            i = f.indexOf("(") + 1;
+            j = f.indexOf(")", i);
+            var params = f.substring(i, j).split(",");
+
+            i = f.indexOf("{") + 1;
+            j = f.indexOf("}", i);
+            var body = f.substring(i, j).trim(); 
+            
+
+            if(params.length === args.length){ 
+              var arr = [name, params, args, body];
+              resolve(arr);
+            }
+            else{
+              reject();
+            }
+          }
+        );
+      }
+
+      //Functions to pass into promise
+      function printResult(arr){
+        let w = new Worker("./async.js");
+        var n = arr[0];
+        var p = arr[1];
+        var a = arr[2];
+        var b = arr[3];
+
+        w.onmessage = function(e){
+          var rtn = e.data;
+          console.log("Message back is: " + rtn);
+        }
+
+        let msg = {
+          name : n,
+          body: b,
+          params: p,
+          args: a
+        }
+        w.postMessage(msg);
+
+      }
+
+      function printFailure(){
+        console.log("Arguments doesn't match parameter count");
+      }
+
+      //testing functions
+      function func(a, b){
+        return a + b;
+      }
+      
+      var f = func.toString();
+      args = [1, 2];
+      let p = invokeAsync(f, args);
+      p.then(printResult, printFailure);
+    </script>
+  </body>
+</html>

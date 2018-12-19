@@ -1,0 +1,13 @@
+bin
+.metadata
+.recommenders
+.settings
+.DS_Store
+*.txt
+*.zip
+.project
+.classpath
+*.jpg
+Project Deliverables
+*.pdf
+_MACOSX

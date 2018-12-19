@@ -1,0 +1,85 @@
+<html>
+  <head></head>
+  <body>
+    <script>
+      
+
+      Histogram_slow = (max, samples) => {
+        var results = new Int32Array(max);
+
+        var start = Date.now();
+        for(let i = 0; i < samples; i++){
+          let next = Math.floor(Math.random() * max);
+          results[next]++;
+        }
+        var time = Date.now() - start;
+        console.log("Time took: " + time);
+
+        let total = 0;
+        results.forEach(e =>
+          total += e
+        );
+        console.log(total);
+      }
+
+      record_time = start => {
+        return print_time = () => {
+          var time = Date.now() - start;
+          console.log("Time took: " + time);
+        }
+      }
+
+      Histogram_fast = (max, samples) => {
+        return new Promise(function(resolve, reject){
+          debugger;  
+          var w = new Worker("./histogram.js"); 
+            let results;
+            // console.log("Creating promise");
+            w.onmessage = function(e){
+              results = e.data;
+              let total = 0;
+              results.forEach(e => total += e);
+              resolve();
+            }
+
+            var msg = {max: max, samples: samples};
+            w.postMessage(msg);
+                
+          }
+        )
+      };
+
+      
+
+      var givenMax = 10000;
+      var givenNum = 100000000;
+      var cores = 4;
+
+      // var givenMax = 10;
+      // var givenNum = 1000;
+
+      console.log("Running slow histogram");
+      Histogram_slow(givenMax, givenNum);
+
+      console.log("Running fast histogram");
+      
+
+      var promises = new Array(cores);
+      for(let i = 0; i < cores; i++){ 
+        promises[i] = Histogram_fast(givenMax, givenNum / cores); 
+      }
+      
+
+      var start = Date.now();
+      var func = record_time(start);
+      Promise.all(promises).then(func);
+      // var time = Date.now() - start;
+      // console.log("Time took: " + time);
+
+      var arr = new Int32Array(givenMax);
+      promises.forEach(p => console.log(p.results));
+
+    </script>
+  </body>
+</html>
+
